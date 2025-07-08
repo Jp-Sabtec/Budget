@@ -3,8 +3,10 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { BudgetState, Currency, Expense, TaxDetails } from '@/types';
 import { calculateSATax } from '@/lib/tax';
-import { convertToSelectedCurrency, CURRENCIES } from '@/lib/currency';
+import { CURRENCIES } from '@/lib/currency';
 import { exportToJSON, importFromJSON, exportToExcel, importFromExcel } from '@/lib/fileHandlers';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 import AppHeader from './AppHeader';
 import IncomeCard from './IncomeCard';
@@ -89,6 +91,56 @@ export default function TaxWiseDashboard() {
     }
   };
 
+  const handleExportPDF = () => {
+    const input = document.getElementById('pdf-content');
+    if (input) {
+      toast({
+        title: 'Generating PDF...',
+        description: 'Please wait a moment while we prepare your document.',
+      });
+      html2canvas(input, {
+        scale: 2,
+        useCORS: true,
+      }).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+
+        const imgProps= pdf.getImageProperties(imgData);
+        const imgWidth = imgProps.width;
+        const imgHeight = imgProps.height;
+        
+        const ratio = imgWidth / imgHeight;
+        
+        let newWidth = pdfWidth - 20; // with margin
+        let newHeight = newWidth / ratio;
+
+        if(newHeight > pdfHeight - 20) {
+            newHeight = pdfHeight - 20;
+            newWidth = newHeight * ratio;
+        }
+
+        const x = (pdfWidth - newWidth) / 2;
+        const y = (pdfHeight - newHeight) / 2;
+        
+        pdf.addImage(imgData, 'PNG', x, y, newWidth, newHeight);
+        pdf.save('taxwise-budget.pdf');
+
+        toast({
+          title: 'PDF Exported',
+          description: 'Your budget has been successfully exported.',
+        });
+      });
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Export Failed",
+            description: "Could not find content to export.",
+        });
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader
@@ -97,9 +149,10 @@ export default function TaxWiseDashboard() {
         onSaveJSON={() => exportToJSON(budget)}
         onSaveExcel={() => exportToExcel(budget, taxDetails)}
         onFileUpload={handleFileUpload}
+        onSavePDF={handleExportPDF}
       />
       <main className="flex-grow p-4 md:p-8">
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div id="pdf-content" className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1 flex flex-col gap-6">
             <IncomeCard
               salary={budget.monthlySalary}

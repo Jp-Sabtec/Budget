@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Upload, Download, FileJson, FileSpreadsheet, Calculator } from 'lucide-react';
+import { Upload, Download, FileJson, FileSpreadsheet, Calculator, FileText } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ interface AppHeaderProps {
   onSaveJSON: () => void;
   onSaveExcel: () => void;
   onFileUpload: (file: File) => void;
+  onSavePDF: () => void;
 }
 
 export default function AppHeader({
@@ -27,6 +28,7 @@ export default function AppHeader({
   onSaveJSON,
   onSaveExcel,
   onFileUpload,
+  onSavePDF,
 }: AppHeaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -91,6 +93,10 @@ export default function AppHeader({
               <DropdownMenuItem onClick={onSaveExcel}>
                 <FileSpreadsheet className="mr-2 h-4 w-4" />
                 <span>Export as Excel</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onSavePDF}>
+                <FileText className="mr-2 h-4 w-4" />
+                <span>Export as PDF</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
