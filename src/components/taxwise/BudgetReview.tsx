@@ -95,7 +95,7 @@ export default function BudgetReview() {
   }
 
   return (
-    <div id="pdf-review-content" className="space-y-6">
+    <div className="space-y-6">
         <div className="flex justify-end">
             <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="mr-2 h-4 w-4" />
@@ -109,68 +109,70 @@ export default function BudgetReview() {
                 accept=".json"
             />
         </div>
-      <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <Card>
-                <CardHeader><CardTitle>Expense Comparison</CardTitle></CardHeader>
-                <CardContent>
-                    <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>Category</TableHead>
-                            <TableHead className="text-right">Budgeted</TableHead>
-                            <TableHead className="w-[180px] text-center">Actual Spending</TableHead>
-                            <TableHead className="text-right">Difference</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {comparisonData.map((item) => (
-                            <TableRow key={item.id}>
-                                <TableCell className="font-medium">{item.category === 'Other' ? item.customName : item.category}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.budgetedAmount, budget.currency)}</TableCell>
-                                <TableCell>
-                                <div className="relative mx-auto">
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">{CURRENCIES[budget.currency].symbol}</span>
-                                    <Input
-                                    type="number"
-                                    placeholder="0.00"
-                                    value={actuals[item.id] || ''}
-                                    onChange={(e) => handleActualsChange(item.id, e.target.value)}
-                                    className="pl-7 text-right"
-                                    />
-                                </div>
-                                </TableCell>
-                                <TableCell className={`text-right font-medium ${item.difference < 0 ? 'text-destructive' : 'text-green-600'}`}>
-                                    {formatCurrency(item.difference, budget.currency)}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        </TableBody>
-                    </Table>
+      <div id="pdf-review-content">
+        <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <Card>
+                  <CardHeader><CardTitle>Expense Comparison</CardTitle></CardHeader>
+                  <CardContent>
+                      <div className="overflow-x-auto">
+                      <Table>
+                          <TableHeader>
+                          <TableRow>
+                              <TableHead>Category</TableHead>
+                              <TableHead className="text-right">Budgeted</TableHead>
+                              <TableHead className="w-[180px] text-center">Actual Spending</TableHead>
+                              <TableHead className="text-right">Difference</TableHead>
+                          </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                          {comparisonData.map((item) => (
+                              <TableRow key={item.id}>
+                                  <TableCell className="font-medium">{item.category === 'Other' ? item.customName : item.category}</TableCell>
+                                  <TableCell className="text-right">{formatCurrency(item.budgetedAmount, budget.currency)}</TableCell>
+                                  <TableCell>
+                                  <div className="relative mx-auto">
+                                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">{CURRENCIES[budget.currency].symbol}</span>
+                                      <Input
+                                      type="number"
+                                      placeholder="0.00"
+                                      value={actuals[item.id] || ''}
+                                      onChange={(e) => handleActualsChange(item.id, e.target.value)}
+                                      className="pl-7 text-right"
+                                      />
+                                  </div>
+                                  </TableCell>
+                                  <TableCell className={`text-right font-medium ${item.difference < 0 ? 'text-destructive' : 'text-green-600'}`}>
+                                      {formatCurrency(item.difference, budget.currency)}
+                                  </TableCell>
+                              </TableRow>
+                          ))}
+                          </TableBody>
+                      </Table>
+                      </div>
+                  </CardContent>
+              </Card>
+            </div>
+            <div className="lg:col-span-1 space-y-6">
+              <Card>
+                  <CardHeader><CardTitle>Review Summary</CardTitle></CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Budgeted</span>
+                      <span className="font-medium">{formatCurrency(convertToSelectedCurrency(totalBudgetedExpenses, budget.currency), budget.currency)}</span>
                     </div>
-                </CardContent>
-            </Card>
-          </div>
-          <div className="lg:col-span-1 space-y-6">
-            <Card>
-                <CardHeader><CardTitle>Review Summary</CardTitle></CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Budgeted</span>
-                    <span className="font-medium">{formatCurrency(convertToSelectedCurrency(totalBudgetedExpenses, budget.currency), budget.currency)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Actual</span>
-                    <span className="font-medium">{formatCurrency(convertToSelectedCurrency(totalActualExpensesZAR, budget.currency), budget.currency)}</span>
-                  </div>
-                  <div className={`flex justify-between font-bold text-base pt-2 border-t ${totalDifferenceZAR < 0 ? 'text-destructive' : 'text-green-600'}`}>
-                      <span>{totalDifferenceZAR < 0 ? 'Total Overspent' : 'Total Saved'}</span>
-                      <span>{formatCurrency(convertToSelectedCurrency(Math.abs(totalDifferenceZAR), budget.currency), budget.currency)}</span>
-                  </div>
-                </CardContent>
-            </Card>
-          </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Actual</span>
+                      <span className="font-medium">{formatCurrency(convertToSelectedCurrency(totalActualExpensesZAR, budget.currency), budget.currency)}</span>
+                    </div>
+                    <div className={`flex justify-between font-bold text-base pt-2 border-t ${totalDifferenceZAR < 0 ? 'text-destructive' : 'text-green-600'}`}>
+                        <span>{totalDifferenceZAR < 0 ? 'Total Overspent' : 'Total Saved'}</span>
+                        <span>{formatCurrency(convertToSelectedCurrency(Math.abs(totalDifferenceZAR), budget.currency), budget.currency)}</span>
+                    </div>
+                  </CardContent>
+              </Card>
+            </div>
+        </div>
       </div>
     </div>
   );
