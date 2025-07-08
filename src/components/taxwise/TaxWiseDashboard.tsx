@@ -1,0 +1,136 @@
+"use client";
+
+import React, { useState, useMemo, useCallback } from 'react';
+import { BudgetState, Currency, Expense, TaxDetails } from '@/types';
+import { calculateSATax } from '@/lib/tax';
+import { convertToSelectedCurrency, CURRENCIES } from '@/lib/currency';
+import { exportToJSON, importFromJSON, exportToExcel, importFromExcel } from '@/lib/fileHandlers';
+
+import AppHeader from './AppHeader';
+import IncomeCard from './IncomeCard';
+import BudgetSummary from './BudgetSummary';
+import ExpenseForm from './ExpenseForm';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ExpenseTable from './ExpenseTable';
+import SpendingChart from './SpendingChart';
+import { useToast } from "@/hooks/use-toast";
+
+const initialBudget: BudgetState = {
+  monthlySalary: 50000,
+  expenses: [],
+  currency: 'ZAR',
+};
+
+export default function TaxWiseDashboard() {
+  const [budget, setBudget] = useState<BudgetState>(initialBudget);
+  const { toast } = useToast();
+
+  const taxDetails: TaxDetails | null = useMemo(() => {
+    if (budget.monthlySalary > 0) {
+      return calculateSATax(budget.monthlySalary);
+    }
+    return null;
+  }, [budget.monthlySalary]);
+
+  const totalExpenses = useMemo(() => {
+    return budget.expenses.reduce((acc, expense) => acc + expense.amount, 0);
+  }, [budget.expenses]);
+
+  const netMonthlyIncome = taxDetails?.netMonthly || 0;
+  const remainingBalance = netMonthlyIncome - totalExpenses;
+
+  const handleStateChange = useCallback((newState: Partial<BudgetState>) => {
+    setBudget(prev => ({...prev, ...newState}));
+  }, []);
+
+  const addExpense = (newExpense: Omit<Expense, 'id'>) => {
+    setBudget(prev => ({
+      ...prev,
+      expenses: [...prev.expenses, { ...newExpense, id: new Date().toISOString() }],
+    }));
+  };
+
+  const deleteExpense = (id: string) => {
+    setBudget(prev => ({
+      ...prev,
+      expenses: prev.expenses.filter(e => e.id !== id),
+    }));
+  };
+  
+  const handleFileUpload = (file: File) => {
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    
+    const onImportSuccess = (data: BudgetState) => {
+        setBudget(data);
+        toast({
+          title: "Import Successful",
+          description: "Your budget data has been loaded.",
+        });
+    };
+
+    const onImportError = (error: string) => {
+        toast({
+          variant: "destructive",
+          title: "Import Failed",
+          description: error,
+        });
+    };
+    
+    if (fileExtension === 'json') {
+      importFromJSON(file, onImportSuccess, onImportError);
+    } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+      importFromExcel(file, onImportSuccess, onImportError);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Unsupported File Type",
+        description: "Please upload a .json or .xlsx file.",
+      });
+    }
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <AppHeader
+        currency={budget.currency}
+        onCurrencyChange={(newCurrency) => handleStateChange({ currency: newCurrency as Currency })}
+        onSaveJSON={() => exportToJSON(budget)}
+        onSaveExcel={() => exportToExcel(budget, taxDetails)}
+        onFileUpload={handleFileUpload}
+      />
+      <main className="flex-grow p-4 md:p-8">
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            <IncomeCard
+              salary={budget.monthlySalary}
+              onSalaryChange={(salary) => handleStateChange({ monthlySalary: salary })}
+              taxDetails={taxDetails}
+              currency={budget.currency}
+            />
+            <BudgetSummary
+              netIncome={netMonthlyIncome}
+              totalExpenses={totalExpenses}
+              remainingBalance={remainingBalance}
+              currency={budget.currency}
+            />
+            <ExpenseForm onSubmit={addExpense} currency={budget.currency} />
+          </div>
+          <div className="lg:col-span-2">
+             <Tabs defaultValue="list" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="list">Expense List</TabsTrigger>
+                <TabsTrigger value="breakdown">Spending Breakdown</TabsTrigger>
+              </TabsList>
+              <TabsContent value="list">
+                <ExpenseTable expenses={budget.expenses} currency={budget.currency} onDelete={deleteExpense} />
+              </TabsContent>
+              <TabsContent value="breakdown">
+                <SpendingChart expenses={budget.expenses} currency={budget.currency} />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
