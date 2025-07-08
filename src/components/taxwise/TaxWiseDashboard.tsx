@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ExpenseTable from './ExpenseTable';
 import SpendingChart from './SpendingChart';
 import { useToast } from "@/hooks/use-toast";
+import BudgetReview from './BudgetReview';
 
 const initialBudget: BudgetState = {
   monthlySalary: 0,
@@ -152,37 +153,48 @@ export default function TaxWiseDashboard() {
         onSavePDF={handleExportPDF}
       />
       <main className="flex-grow p-4 md:p-8">
-        <div id="pdf-content" className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-1 flex flex-col gap-6">
-            <IncomeCard
-              salary={budget.monthlySalary}
-              onSalaryChange={(salary) => handleStateChange({ monthlySalary: salary })}
-              taxDetails={taxDetails}
-              currency={budget.currency}
-            />
-            <BudgetSummary
-              netIncome={netMonthlyIncome}
-              totalExpenses={totalExpenses}
-              remainingBalance={remainingBalance}
-              currency={budget.currency}
-            />
-            <ExpenseForm onSubmit={addExpense} currency={budget.currency} />
-          </div>
-          <div className="lg:col-span-2">
-             <Tabs defaultValue="list" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="list">Expense List</TabsTrigger>
-                <TabsTrigger value="breakdown">Spending Breakdown</TabsTrigger>
-              </TabsList>
-              <TabsContent value="list">
-                <ExpenseTable expenses={budget.expenses} currency={budget.currency} onDelete={deleteExpense} />
-              </TabsContent>
-              <TabsContent value="breakdown">
-                <SpendingChart expenses={budget.expenses} currency={budget.currency} />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
+        <Tabs defaultValue="create" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6 max-w-lg mx-auto">
+                <TabsTrigger value="create">Create Monthly Budget</TabsTrigger>
+                <TabsTrigger value="review">Review Monthly Budget</TabsTrigger>
+            </TabsList>
+            <TabsContent value="create">
+                <div id="pdf-content" className="grid gap-6 lg:grid-cols-3">
+                    <div className="lg:col-span-1 flex flex-col gap-6">
+                        <IncomeCard
+                        salary={budget.monthlySalary}
+                        onSalaryChange={(salary) => handleStateChange({ monthlySalary: salary })}
+                        taxDetails={taxDetails}
+                        currency={budget.currency}
+                        />
+                        <BudgetSummary
+                        netIncome={netMonthlyIncome}
+                        totalExpenses={totalExpenses}
+                        remainingBalance={remainingBalance}
+                        currency={budget.currency}
+                        />
+                        <ExpenseForm onSubmit={addExpense} currency={budget.currency} />
+                    </div>
+                    <div className="lg:col-span-2">
+                        <Tabs defaultValue="list" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="list">Expense List</TabsTrigger>
+                            <TabsTrigger value="breakdown">Spending Breakdown</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="list">
+                            <ExpenseTable expenses={budget.expenses} currency={budget.currency} onDelete={deleteExpense} />
+                        </TabsContent>
+                        <TabsContent value="breakdown">
+                            <SpendingChart expenses={budget.expenses} currency={budget.currency} />
+                        </TabsContent>
+                        </Tabs>
+                    </div>
+                </div>
+            </TabsContent>
+            <TabsContent value="review">
+                <BudgetReview />
+            </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
