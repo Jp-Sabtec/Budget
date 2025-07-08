@@ -49,7 +49,7 @@ export default function AppHeader({
         <div className="flex items-center gap-4">
           <Calculator className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold tracking-tight md:text-2xl">
-            TaxWise <span className="hidden sm:inline-block">Budget</span>
+            TrackSoft <span className="hidden sm:inline-block">Budget</span>
           </h1>
         </div>
         <div className="flex items-center gap-2 md:gap-4">

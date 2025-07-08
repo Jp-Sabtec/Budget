@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'TaxWise Budget',
+  title: 'TrackSoft Budget',
   description: 'A local monthly expense and tax calculation app.',
 };
 

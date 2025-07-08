@@ -6,7 +6,7 @@ export const exportToJSON = (data: BudgetState) => {
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
     const link = document.createElement("a");
     link.href = jsonString;
-    link.download = "taxwise-budget.json";
+    link.download = "tracksoft-budget.json";
     link.click();
 };
 
@@ -44,7 +44,7 @@ export const exportToExcel = (budget: BudgetState, taxDetails: TaxDetails | null
 
     // Summary Sheet
     const summaryData = [
-        ["TaxWise Budget Summary"],
+        ["TrackSoft Budget Summary"],
         [],
         ["Currency", budget.currency],
         ["Monthly Salary (Gross)", budget.monthlySalary],
@@ -78,7 +78,7 @@ export const exportToExcel = (budget: BudgetState, taxDetails: TaxDetails | null
     wb.Workbook.Sheets.push({ Name: "RawData", Hidden: 1 });
 
 
-    XLSX.writeFile(wb, "taxwise-budget.xlsx");
+    XLSX.writeFile(wb, "tracksoft-budget.xlsx");
 };
 
 export const importFromExcel = (

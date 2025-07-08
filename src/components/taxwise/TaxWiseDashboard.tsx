@@ -125,7 +125,7 @@ export default function TaxWiseDashboard() {
         const y = (pdfHeight - newHeight) / 2;
         
         pdf.addImage(imgData, 'PNG', x, y, newWidth, newHeight);
-        pdf.save('taxwise-budget.pdf');
+        pdf.save('tracksoft-budget.pdf');
 
         toast({
           title: 'PDF Exported',
