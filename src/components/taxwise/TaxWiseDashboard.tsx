@@ -26,6 +26,7 @@ const initialBudget: BudgetState = {
 
 export default function TaxWiseDashboard() {
   const [budget, setBudget] = useState<BudgetState>(initialBudget);
+  const [activeTab, setActiveTab] = useState('create');
   const { toast } = useToast();
 
   const taxDetails: TaxDetails | null = useMemo(() => {
@@ -93,7 +94,8 @@ export default function TaxWiseDashboard() {
   };
 
   const handleExportPDF = () => {
-    const input = document.getElementById('pdf-content');
+    const elementId = activeTab === 'create' ? 'pdf-content' : 'pdf-review-content';
+    const input = document.getElementById(elementId);
     if (input) {
       toast({
         title: 'Generating PDF...',
@@ -125,8 +127,9 @@ export default function TaxWiseDashboard() {
         const x = (pdfWidth - newWidth) / 2;
         const y = (pdfHeight - newHeight) / 2;
         
+        const fileName = activeTab === 'create' ? 'tracksoft-budget.pdf' : 'tracksoft-budget-review.pdf';
         pdf.addImage(imgData, 'PNG', x, y, newWidth, newHeight);
-        pdf.save('tracksoft-budget.pdf');
+        pdf.save(fileName);
 
         toast({
           title: 'PDF Exported',
@@ -134,10 +137,13 @@ export default function TaxWiseDashboard() {
         });
       });
     } else {
+        const errorMessage = activeTab === 'review'
+            ? "Please import a budget to review before exporting to PDF."
+            : "Could not find content to export.";
         toast({
             variant: "destructive",
             title: "Export Failed",
-            description: "Could not find content to export.",
+            description: errorMessage,
         });
     }
   };
@@ -153,7 +159,7 @@ export default function TaxWiseDashboard() {
         onSavePDF={handleExportPDF}
       />
       <main className="flex-grow p-4 md:p-8">
-        <Tabs defaultValue="create" className="w-full">
+        <Tabs defaultValue="create" className="w-full" onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2 mb-6 max-w-lg mx-auto">
                 <TabsTrigger value="create">Create Monthly Budget</TabsTrigger>
                 <TabsTrigger value="review">Review Monthly Budget</TabsTrigger>

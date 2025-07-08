@@ -95,7 +95,7 @@ export default function BudgetReview() {
   }
 
   return (
-    <div className="space-y-6">
+    <div id="pdf-review-content" className="space-y-6">
         <div className="flex justify-end">
             <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="mr-2 h-4 w-4" />
