@@ -18,10 +18,19 @@ import SpendingChart from './SpendingChart';
 import { useToast } from "@/hooks/use-toast";
 import BudgetReview from './BudgetReview';
 
+const initialCategories = [
+  'Food',
+  'Transport',
+  'Rent',
+  'Medical Aid',
+  'Other',
+];
+
 const initialBudget: BudgetState = {
   monthlySalary: 0,
   expenses: [],
   currency: 'ZAR',
+  expenseCategories: initialCategories,
 };
 
 export default function TaxWiseDashboard() {
@@ -61,6 +70,15 @@ export default function TaxWiseDashboard() {
     }));
   };
   
+  const addExpenseCategory = (category: string) => {
+    if (category && !budget.expenseCategories.includes(category)) {
+      setBudget(prev => ({
+        ...prev,
+        expenseCategories: [...prev.expenseCategories, category],
+      }));
+    }
+  };
+
   const handleFileUpload = (file: File) => {
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
     
@@ -179,7 +197,12 @@ export default function TaxWiseDashboard() {
                         remainingBalance={remainingBalance}
                         currency={budget.currency}
                         />
-                        <ExpenseForm onSubmit={addExpense} currency={budget.currency} />
+                        <ExpenseForm
+                          onSubmit={addExpense}
+                          currency={budget.currency}
+                          categories={budget.expenseCategories}
+                          onAddCategory={addExpenseCategory}
+                        />
                     </div>
                     <div className="lg:col-span-2">
                         <Tabs defaultValue="list" className="w-full">

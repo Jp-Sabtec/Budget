@@ -25,6 +25,15 @@ export const importFromJSON = (
             const data = JSON.parse(text);
             // Basic validation
             if (data.monthlySalary !== undefined && data.expenses !== undefined && data.currency !== undefined) {
+                 if (!data.expenseCategories) {
+                    data.expenseCategories = [
+                        'Food',
+                        'Transport',
+                        'Rent',
+                        'Medical Aid',
+                        'Other',
+                    ];
+                 }
                  onSuccess(data as BudgetState);
             } else {
                 throw new Error("Invalid JSON structure for budget data.");
@@ -68,7 +77,8 @@ export const exportToExcel = (budget: BudgetState, taxDetails: TaxDetails | null
     const rawData = {
         monthlySalary: budget.monthlySalary,
         currency: budget.currency,
-        expenses: budget.expenses
+        expenses: budget.expenses,
+        expenseCategories: budget.expenseCategories,
     };
     const wsRaw = XLSX.utils.json_to_sheet([rawData]);
     XLSX.utils.book_append_sheet(wb, wsRaw, "RawData");
@@ -112,6 +122,13 @@ export const importFromExcel = (
                     monthlySalary: 0,
                     currency: 'ZAR',
                     expenses,
+                    expenseCategories: [
+                        'Food',
+                        'Transport',
+                        'Rent',
+                        'Medical Aid',
+                        'Other',
+                    ],
                 };
                 onSuccess(fallbackState);
                 return;
@@ -125,6 +142,17 @@ export const importFromExcel = (
                 // Excel import might stringify the expenses array
                 if (typeof importedState.expenses === 'string') {
                     importedState.expenses = JSON.parse(importedState.expenses);
+                }
+                if (!importedState.expenseCategories) {
+                    importedState.expenseCategories = [
+                        'Food',
+                        'Transport',
+                        'Rent',
+                        'Medical Aid',
+                        'Other',
+                    ];
+                } else if (typeof importedState.expenseCategories === 'string') {
+                    importedState.expenseCategories = JSON.parse(importedState.expenseCategories);
                 }
                 onSuccess(importedState);
             } else {

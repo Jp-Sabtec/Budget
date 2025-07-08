@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,11 +9,21 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Currency, Expense, ExpenseCategory, EXPENSE_CATEGORIES } from '@/types';
+import { Currency, Expense } from '@/types';
 import { CURRENCIES } from '@/lib/currency';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { PlusCircle } from 'lucide-react';
 
 const formSchema = z.object({
-  category: z.custom<ExpenseCategory>(),
+  category: z.string().min(1, "Category is required."),
   customName: z.string().optional(),
   amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
 }).refine(data => {
@@ -30,14 +40,20 @@ const formSchema = z.object({
 interface ExpenseFormProps {
     onSubmit: (expense: Omit<Expense, 'id'>) => void;
     currency: Currency;
+    categories: string[];
+    onAddCategory: (category: string) => void;
 }
 
-export default function ExpenseForm({ onSubmit, currency }: ExpenseFormProps) {
+export default function ExpenseForm({ onSubmit, currency, categories, onAddCategory }: ExpenseFormProps) {
+  const [newCategory, setNewCategory] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      category: 'Food',
+      category: categories[0] || '',
       amount: 0,
+      customName: '',
     },
   });
 
@@ -53,8 +69,17 @@ export default function ExpenseForm({ onSubmit, currency }: ExpenseFormProps) {
         customName: values.category === 'Other' ? values.customName : undefined,
         amount: amountInZAR
     });
-    form.reset({ category: 'Food', amount: 0, customName: '' });
+    form.reset({ category: categories[0] || '', amount: 0, customName: '' });
   }
+
+  const handleAddCategory = () => {
+    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
+      onAddCategory(newCategory.trim());
+      form.setValue('category', newCategory.trim());
+      setNewCategory('');
+      setIsDialogOpen(false);
+    }
+  };
 
   return (
     <Card>
@@ -70,18 +95,46 @@ export default function ExpenseForm({ onSubmit, currency }: ExpenseFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an expense category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {EXPENSE_CATEGORIES.map(cat => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Select onValueChange={field.onChange} value={field.value || ''} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an expense category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories.map(cat => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="icon" className="shrink-0">
+                          <PlusCircle className="h-4 w-4" />
+                          <span className="sr-only">Add new category</span>
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Add New Category</DialogTitle>
+                        </DialogHeader>
+                        <div className="py-4">
+                          <Input 
+                            placeholder="e.g., Entertainment"
+                            value={newCategory}
+                            onChange={(e) => setNewCategory(e.target.value)}
+                          />
+                        </div>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <Button variant="ghost">Cancel</Button>
+                          </DialogClose>
+                          <Button onClick={handleAddCategory}>Add Category</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

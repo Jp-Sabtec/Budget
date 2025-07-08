@@ -1,14 +1,6 @@
 export type Currency = 'ZAR' | 'USD' | 'EUR';
 
-export const EXPENSE_CATEGORIES = [
-  'Food',
-  'Transport',
-  'Rent',
-  'Medical Aid',
-  'Other',
-] as const;
-
-export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
+export type ExpenseCategory = string;
 
 export interface Expense {
   id: string;
@@ -21,6 +13,7 @@ export interface BudgetState {
   monthlySalary: number; // Always stored in ZAR
   expenses: Expense[];
   currency: Currency;
+  expenseCategories: string[];
 }
 
 export interface TaxDetails {
