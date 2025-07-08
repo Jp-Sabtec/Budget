@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,35 @@ const IncomeDetailRow = ({ label, value, currency }: { label: string; value: num
 
 export default function IncomeCard({ salary, onSalaryChange, taxDetails, currency }: IncomeCardProps) {
   const currencySymbol = CURRENCIES[currency].symbol;
+  const [inputValue, setInputValue] = useState<string>('');
+
+  useEffect(() => {
+    // Syncs the input field when the main salary state changes (e.g., from file import or currency change)
+    const propValueInSelectedCurrency = convertToSelectedCurrency(salary, currency);
+    const inputValueAsNumber = parseFloat(inputValue) || 0;
+
+    // Only update the input if the prop value is different from the input's current value.
+    // This prevents reformatting while the user is typing.
+    if (Math.abs(propValueInSelectedCurrency - inputValueAsNumber) > 1e-9) {
+      setInputValue(salary > 0 ? propValueInSelectedCurrency.toFixed(2) : '');
+    }
+  }, [salary, currency]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newRawValue = e.target.value;
+    setInputValue(newRawValue); // Allow user to type freely (e.g., "50.")
+
+    // Update the main state in real-time
+    const valueInSelectedCurrency = parseFloat(newRawValue) || 0;
+    const valueInZAR = valueInSelectedCurrency / CURRENCIES[currency].rate;
+    onSalaryChange(valueInZAR);
+  };
+  
+  const handleInputBlur = () => {
+    // On blur, format the number to two decimal places for a clean display
+    const valueInSelectedCurrency = parseFloat(inputValue) || 0;
+    setInputValue(valueInSelectedCurrency > 0 ? valueInSelectedCurrency.toFixed(2) : '');
+  };
 
   return (
     <Card>
@@ -38,13 +67,10 @@ export default function IncomeCard({ salary, onSalaryChange, taxDetails, currenc
             <Input
               id="monthly-salary"
               type="number"
-              placeholder="e.g. 50000"
-              value={convertToSelectedCurrency(salary, currency).toFixed(2)}
-              onChange={(e) => {
-                 const valueInSelectedCurrency = parseFloat(e.target.value) || 0;
-                 const valueInZAR = valueInSelectedCurrency / CURRENCIES[currency].rate;
-                 onSalaryChange(valueInZAR);
-              }}
+              placeholder="0.00"
+              value={inputValue}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
               className="pl-7"
             />
           </div>

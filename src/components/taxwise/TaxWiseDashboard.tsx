@@ -18,7 +18,7 @@ import SpendingChart from './SpendingChart';
 import { useToast } from "@/hooks/use-toast";
 
 const initialBudget: BudgetState = {
-  monthlySalary: 50000,
+  monthlySalary: 0,
   expenses: [],
   currency: 'ZAR',
 };
